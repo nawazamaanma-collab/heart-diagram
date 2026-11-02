@@ -1,0 +1,190 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart Animation</title>
+
+<style>
+body {
+    margin: 0;
+    background: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+canvas {
+    max-width: 100vw;
+    max-height: 100vh;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="heart"></canvas>
+
+
+<script>
+const canvas = document.getElementById("heart");
+const ctx = canvas.getContext("2d");
+
+const colors = [
+    "red", "blue", "lime", "yellow",
+    "cyan", "magenta", "orange", "pink"
+];
+
+let i = 0;
+let rays = 0;
+let x = 0;
+let y = 0;
+let color = "red";
+let phase = "line";
+let messageStep = 0;
+let messageTimer = 0;
+
+function setup() {
+    const size = Math.min(window.innerWidth, window.innerHeight, 650);
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    canvas.style.width = size + "px";
+    canvas.style.height = size + "px";
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, size, size);
+
+    window.scale = size / 600;
+    window.cx = size / 2;
+    window.cy = size / 2;
+}
+
+function drawMessage(text, size) {
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = `bold ${size * window.scale}px Arial`;
+
+    ctx.shadowColor = "#ff1493";
+    ctx.shadowBlur = 25;
+    ctx.fillStyle = "#ff69b4";
+
+    ctx.fillText(
+        text,
+        window.cx,
+        window.cy + 210 * window.scale
+    );
+
+    ctx.restore();
+}
+
+function draw() {
+
+    if (i >= 120) {
+
+        messageTimer++;
+
+        if (messageTimer > 60) {
+            messageStep = 1;
+        }
+
+        if (messageStep === 0) {
+            drawMessage("FOR YOU ❤️", 25);
+        }
+
+        if (messageStep === 1) {
+            drawMessage("TAKE CARE ❤️", 25);
+        }
+
+        if (messageTimer > 150) {
+            i = 0;
+            rays = 0;
+            phase = "line";
+            messageStep = 0;
+            messageTimer = 0;
+            setup();
+        }
+
+        requestAnimationFrame(draw);
+        return;
+    }
+
+    const angle = i * Math.PI * 2 / 120;
+
+    const hx = 16 * Math.pow(Math.sin(angle), 3) * 15;
+
+    const hy = (
+        13 * Math.cos(angle)
+        - 5 * Math.cos(2 * angle)
+        - 2 * Math.cos(3 * angle)
+        - Math.cos(4 * angle)
+    ) * 15;
+
+    const px = window.cx + hx * window.scale;
+    const py = window.cy - hy * window.scale;
+
+    if (phase === "line") {
+
+        x = px;
+        y = py;
+
+        color = colors[Math.floor(Math.random() * colors.length)];
+
+        ctx.beginPath();
+        ctx.moveTo(window.cx, window.cy - 40 * window.scale);
+        ctx.lineTo(x, y);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        rays = 0;
+        phase = "rays";
+    }
+
+    if (phase === "rays") {
+
+        if (rays < 8) {
+            const a = rays * Math.PI / 4;
+            const r = 6 * window.scale;
+
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(
+                x + Math.cos(a) * r,
+                y - Math.sin(a) * r
+            );
+
+            ctx.strokeStyle = color;
+            ctx.stroke();
+
+            rays++;
+        } else {
+            i++;
+            phase = "line";
+        }
+    }
+
+    requestAnimationFrame(draw);
+}
+
+setup();
+draw();
+
+window.addEventListener("resize", () => {
+    setup();
+    i = 0;
+    rays = 0;
+    phase = "line";
+    messageStep = 0;
+    messageTimer = 0;
+});
+</script>
+
+</body>
+</html>
